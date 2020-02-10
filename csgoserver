@@ -10,9 +10,10 @@ tickrate=128
 portnumber=27015
 servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 
+
 # Start parms
 defaultmap="de_dust2"
-parms="-console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type 0 +game_mode 0 +mapgroup mg_bomb +map ${defaultmap}"
+parms="-console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type 0 +game_mode 0 +mapgroup mg_bomb +sv_setsteamaccount ${GSLT} +map ${defaultmap}"
 
 # Directorys
 rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -37,23 +38,6 @@ if [ `whoami` = "root" ];then
 fi
 }
 
-# Check if csgo directory is already installed
-fn_dircheck(){
-if [ -d ${filesdir} ];then
-	echo "${gamename} Server is already installed here:"
-	pwd
-	echo ""
-	while true; do
-		read -p "Continue [y/N]" yn
-		case $yn in
-		[Yy]* ) break;;
-		[Nn]* ) echo Exiting; return 1 ;;
-		* ) echo "Please answer yes or no.";;
-		esac
-	done
-fi
-}
-
 # Install SteamCMD
 fn_steamdnld(){
 echo "Installing Steam"
@@ -75,12 +59,13 @@ fi
 fn_install(){
 fn_usercheck
 fn_header
+
+# Check if CS:GO server directory is installed
 if [ -d ${filesdir} ];then
-	echo "${csgo} is already installed here:"
+	echo "${csgo} server is already installed here:"
 	pwd
-	echo ""
 	while true; do
-		read -p "Continue [y/n]" choice
+		read -p "Do you wish to continue with the installation? [y/n]" choice
 		case $choice in
 		y|Y ) break;;
 		n|N ) echo Exiting; return 1 ;;
@@ -89,20 +74,22 @@ if [ -d ${filesdir} ];then
 	done
 fi
 fn_header
+
+# Confirm Install Direcotry
 echo "Install Directory:"
 pwd
-echo ""
 while true; do
-	read -p "Continue [y/n]" choice
+	read -p "Proceed with installation? [y/n]" choice
 	case $choice in
 	y|Y ) break;;
 	n|N ) echo Exiting; return 1 ;;
 	* ) echo "Invalid. Answer 'Yes' or 'No.";;
 	esac
 done
+
+# Begin SteamCMD and CS:GO Installation
 fn_header
 fn_steamdnld
-
 echo ""
 echo "Installing ${csgo} Server"
 echo "================================="
@@ -131,12 +118,15 @@ echo "Configuring ${csgo} Server"
 echo "================================="
 	read -p "Enter rcon password: " rconpass
 	read -p "Enter server name: " servername
+	read -p "Enter your GSLT token: " GSLT
+	read -p "(Optional) Enter server password: " serverpass
 	echo "creating server.cfg"
 	touch /${filesdir}/csgo/cfg/server.cfg
 	{
 	echo -e "hostname \"${servername}\""
 	echo -e "rcon_password \"${rconpass}\""
-	echo -e "sv_password \"\" //Only set this if you intend to have a private server!"
+	echo -e "sv_setsteamaccount \"${GSLT}\""
+	echo -e "sv_password \"${serverpass}\""
 	}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
 	echo ""
 	hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
