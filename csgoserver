@@ -13,143 +13,175 @@ servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname /
 
 # Start parms
 defaultmap="de_dust2"
-parms="-console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type 0 +game_mode 0 +mapgroup mg_bomb +sv_setsteamaccount ${GSLT} +map ${defaultmap}"
+parms="-console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type 0 +game_mode 0 +mapgroup mg_bomb +sv_setsteamaccount 0AB9A5506D804F6C4C856D4B9CDBB9FA +map ${defaultmap}"
 
 # Directorys
 rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 filesdir="${rootdir}/csgo"
 
 fn_header(){
-clear
-echo "================================="
-echo "${csgo}"
-echo "Linux Server Installer"
-echo "by Luka Krumpak"
-echo "https://lukakrumpak.com"
-echo "================================="
-echo ""
+	clear
+	echo "================================="
+	echo "${csgo}"
+	echo "Linux Server Installer"
+	echo "by Luka Krumpak"
+	echo "https://lukakrumpak.com"
+	echo "================================="
+	echo ""
 }
 
 # Stop script if user is root
-fn_usercheck(){
-if [ `whoami` = "root" ];then
-	echo -e "[\e[0;31m FAIL\e[0;39m ] Script will not run as root!"
-	exit
-fi
+fn_check_user(){
+	if [ `whoami` = "root" ]; then
+		echo -e "[\e[0;31m FAIL\e[0;39m ] Script will not run as root!"
+		exit
+	fi
+}
+
+# Check if file csgo server exists
+fn_check_file(){
+	if [ ! -e ${filesdir} ];then
+		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: cannot access ${filesdir}: No such directory"
+		exit
+	fi
 }
 
 # Install SteamCMD
-fn_steamdnld(){
-echo "Installing Steam"
-echo "================================="
-cd ${rootdir}
-mkdir steamcmd
-cd steamcmd
-if [ ! -f steam.sh ];then
-	wget wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
-	tar --verbose -zxf steamcmd_linux.tar.gz
-	rm -v steamcmd_linux.tar.gz
-	chmod +x steamcmd.sh
-else
-	echo "Steam already installed!"
-fi
+fn_steamcmd_download(){
+	echo "Installing Steam"
+	echo "================================="
+	cd ${rootdir}
+	mkdir steamcmd
+	cd steamcmd
+	if [ ! -f steam.sh ];then
+		wget wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+		tar --verbose -zxf steamcmd_linux.tar.gz
+		rm -v steamcmd_linux.tar.gz
+		chmod +x steamcmd.sh
+	else
+		echo "Steam already installed!"
+	fi
+}
+
+
+# Start Server
+fn_startserver(){
+	fn_check_user
+	fn_check_file
+	cd ${filesdir}
+	echo -e "[\e[0;32m  OK\e[0;39m  ] Starting ${servicename}: ${csgo}"
+
+	#tmux sesson 
+	tmux new-session -d -s ${servicename} ${filesdir}/srcds_run ${parms}
+	sleep 1
+
+	pidwc=`tmux ls |grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	if [ ${pidwc} -eq 0 ];then
+		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: ${csgo} failed to start"
+	fi
+}
+
+fn_stopserver(){
+	fn_check_user
+	fn_check_file
+	
+	pid=`tmux ls |grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'`
+	if [ -z ${pid} ];then
+		echo -e "[\e[0;36m INFO\e[0;39m ] ${servicename}: ${csgo} is already stopped"
+	else
+		echo -e "[\e[0;32m  OK\e[0;39m  ] Stopping ${servicename}: ${csgo}"
+		tmux kill-session -t ${servicename}
+	fi
 }
 
 # Install SteamCMD and CSGO server APPID 740
 fn_install(){
-fn_usercheck
-fn_header
+	fn_check_user
+	fn_header
 
-# Check if CS:GO server directory is installed
-if [ -d ${filesdir} ];then
-	echo "${csgo} server is already installed here:"
+	# Check if CS:GO server directory is installed
+	if [ -d ${filesdir} ];then
+		echo "${csgo} server is already installed here:"
+		pwd
+		while true; do
+			read -p "Do you wish to continue with the installation? [y/n]" choice
+			case $choice in
+			y|Y ) break;;
+			n|N ) echo Exiting; return 1 ;;
+			* ) echo "Invalid. Answer 'Yes' or 'No.";;
+			esac
+		done
+	fi
+	fn_header
+
+	# Confirm Installation Direcotry
+	echo "Install Directory:"
 	pwd
 	while true; do
-		read -p "Do you wish to continue with the installation? [y/n]" choice
+		read -p "Proceed with installation? [y/n]" choice
 		case $choice in
 		y|Y ) break;;
 		n|N ) echo Exiting; return 1 ;;
 		* ) echo "Invalid. Answer 'Yes' or 'No.";;
 		esac
 	done
-fi
-fn_header
-
-# Confirm Install Direcotry
-echo "Install Directory:"
-pwd
-while true; do
-	read -p "Proceed with installation? [y/n]" choice
-	case $choice in
-	y|Y ) break;;
-	n|N ) echo Exiting; return 1 ;;
-	* ) echo "Invalid. Answer 'Yes' or 'No.";;
-	esac
-done
 
 # Begin SteamCMD and CS:GO Installation
-fn_header
-fn_steamdnld
-echo ""
-echo "Installing ${csgo} Server"
-echo "================================="
-	cd ${rootdir}/steamcmd
-	mkdir -v ${filesdir}
-	touch install.txt
-	chmod 0600 install.txt
-	echo "login anonymous" > install.txt
-	echo "force_install_dir ${filesdir}" >> install.txt
-	echo "app_update 740 validate" >> install.txt
-	echo "quit" >> install.txt
-	STEAMEXE=steamcmd ./steamcmd.sh +runscript install.txt
-	rm install.txt
+	fn_header
+	fn_steamcmd_download
 	echo ""
+	echo "Installing ${csgo} Server"
 	echo "================================="
-	while true; do
-		read -p "Continue [y/n]" choice
-		case $choice in
-		y|Y ) break;;
-		n|N ) break;;
-		* ) echo "Invalid. Answer 'Yes' or 'No.";;
-		esac
-	done
-echo ""
-echo "Configuring ${csgo} Server"
-echo "================================="
-	read -p "Enter rcon password: " rconpass
-	read -p "Enter server name: " servername
-	read -p "Enter your GSLT token: " GSLT
-	read -p "(Optional) Enter server password: " serverpass
-	echo "creating server.cfg"
-	touch /${filesdir}/csgo/cfg/server.cfg
-	{
-	echo -e "hostname \"${servername}\""
-	echo -e "rcon_password \"${rconpass}\""
-	echo -e "sv_setsteamaccount \"${GSLT}\""
-	echo -e "sv_password \"${serverpass}\""
-	}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
+		cd ${rootdir}/steamcmd
+		mkdir -v ${filesdir}
+		touch install.txt
+		chmod 0600 install.txt
+		echo "login anonymous" > install.txt
+		echo "force_install_dir ${filesdir}" >> install.txt
+		echo "app_update 740 validate" >> install.txt
+		echo "quit" >> install.txt
+		STEAMEXE=steamcmd ./steamcmd.sh +runscript install.txt
+		rm install.txt
 	echo ""
-	hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
-	rcon=`grep -s rcon_password /${filesdir}/csgo/cfg/server.cfg | sed 's/rcon_password //g'|sed 's/"//g'`
-	echo "${csgo} Server Details"
+	echo "Configuring ${csgo} Server"
 	echo "================================="
-	echo "Server hostname: ${hostname}"
-	echo "Rcon password: ${rcon}"
-	echo "Server IP: localhost:27015"
-	echo "You can edit these in server.cfg:"
-	echo "${filesdir}/csgo/cfg/server.cfg"
-	echo ""
-	echo "================================="
-	echo "Install Complete!"
-	echo ""
-	echo "To start server type:"
-	echo "./csgoserver start"
-}
+		read -p "Enter rcon password: " rconpass
+		read -p "Enter server name: " servername
+		read -p "Enter your GSLT token: " GSLT
+		read -p "(Optional) Enter server password: " serverpass
+		echo "creating server.cfg"
+		touch /${filesdir}/csgo/cfg/server.cfg
+		{
+		echo -e "hostname \"${servername}\""
+		echo -e "rcon_password \"${rconpass}\""
+		echo -e "sv_setsteamaccount \"${GSLT}\""
+		echo -e "sv_password \"${serverpass}\""
+		}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
+		echo ""
+		hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
+		rcon=`grep -s rcon_password /${filesdir}/csgo/cfg/server.cfg | sed 's/rcon_password //g'|sed 's/"//g'`
+		echo "${csgo} Server Details"
+		echo "================================="
+		echo "Server hostname: ${hostname}"
+		echo "Rcon password: ${rcon}"
+		echo "You can edit these in server.cfg:"
+		echo "${filesdir}/csgo/cfg/server.cfg"
+		echo ""
+		echo "================================="
+		echo "Install Complete!"
+		echo ""
+		echo "To start server type:"
+		echo "./server start"
+	}
 
 case "$1" in
 
 	install)
 		fn_install;;
+	start)
+		fn_startserver;;
+	stop)
+		fn_stopserver;;
 	*)
 		echo "Usage: $0 {start|stop|restart|update|monitor|install|console}"
 		exit 1;;
