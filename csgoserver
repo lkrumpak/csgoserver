@@ -46,6 +46,23 @@ fn_check_file(){
 	fi
 }
 
+# Status of server
+fn_check_status(){
+	# Check if server is running
+	pidwc=`screen -ls |grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	if [ ${pidwc} -eq 1 ];then
+		echo -e "[\e[0;36m INFO\e[0;39m ] ${servicename}: ${csgo} is already running"
+		exit
+	# Check if multiple instances are running
+	elif [ ${pidwc} -ge 2 ];then
+		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: ${csgo} is running ${pidwc} times"
+		echo -e "[\e[0;32m  OK\e[0;39m  ] ${servicename}: ${csgo} stopping all ${pidwc} instances"
+		fn_server_stop
+		fn_startserver
+		exit
+	fi
+}
+
 # Install SteamCMD
 fn_steamcmd_download(){
 	echo "Installing Steam"
@@ -129,6 +146,35 @@ fn_server_update(){
 	cd ${rootdir}
 	cd steamcmd
 	./steamcmd.sh +login anonymous +force_install_dir ${filesdir} +app_update 740 validate +quit
+}
+
+fn_server_status(){
+	fn_check_user
+	fn_check_file
+	echo -e "[\e[0;32m  OK\e[0;39m  ] Checking ${servicename}: ${csgo}"
+	fn_check_status
+}
+
+fn_server_console(){
+	echo -e "[\e[1;34m IMPORTANT\e[0;39m ] Press \"CTRL+b\" then \"d\" to exit console."
+	echo -e "[\e[1;33m WARN\e[0;39m ] Do NOT press CTRL+c to exit."
+	while true; do
+		read -p "Continue? [y/n]" choice
+		case $choice in
+		y|Y ) break;;
+		n|N ) echo Exiting; return 1 ;;
+		* ) echo "Invalid. Answer 'Yes' or 'No.";;
+		esac
+	done
+
+	echo -e "[\e[0;32m  OK\e[0;39m  ] Accessing console"
+	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	if [ ${pidwc} -eq 0 ];then
+		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: ${csgo} is not running!"
+	else
+		tmux attach-session -t "${servicename}"
+		exit
+	fi
 }
 
 # Install SteamCMD and CSGO server APPID 740
@@ -223,8 +269,12 @@ case "$1" in
 		fn_server_restart;;
 	update)
 		fn_server_update;;
+	status)
+		fn_server_status;;
+	console)
+		fn_server_console;;
 	*)
-		echo "Usage: $0 {start|stop|restart|update|monitor|install|console}"
+		echo "Usage: $0 {start|stop|restart|update|status|install|console}"
 		exit 1;;
 esac
 exit
