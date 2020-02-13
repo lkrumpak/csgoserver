@@ -65,33 +65,70 @@ fn_steamcmd_download(){
 
 
 # Start Server
-fn_startserver(){
+fn_server_start(){
 	fn_check_user
 	fn_check_file
 	cd ${filesdir}
-	echo -e "[\e[0;32m  OK\e[0;39m  ] Starting ${servicename}: ${csgo}"
 
-	#tmux sesson 
-	tmux new-session -d -s ${servicename} ${filesdir}/srcds_run ${parms}
-	sleep 1
+	# Check if a tmux server with the servicename is launched
+	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	if [ ${pidwc} -eq 0 ];then
+		echo -e "[\e[0;32m  OK\e[0;39m  ] Starting ${servicename}: ${csgo}"
+		#tmux sesson 
+		tmux new-session -d -s ${servicename} ${filesdir}/srcds_run ${parms}
+		sleep 1
+	else
+		echo -e "[\e[0;36m INFO\e[0;39m ] ${servicename}: ${csgo} is already running"
+		exit
+	fi
 
-	pidwc=`tmux ls |grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	# Check if a tmux server with the servicename is launched
+	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
 	if [ ${pidwc} -eq 0 ];then
 		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: ${csgo} failed to start"
+	else
+		echo -e "[\e[0;32m  OK\e[0;39m  ] Successfully started ${servicename}: ${csgo}"
 	fi
 }
 
-fn_stopserver(){
+fn_server_stop(){
 	fn_check_user
 	fn_check_file
-	
-	pid=`tmux ls |grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'`
-	if [ -z ${pid} ];then
+
+	# Check if a tmux server with the servicename is launched
+	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	if [ ${pidwc} -eq 0 ];then
 		echo -e "[\e[0;36m INFO\e[0;39m ] ${servicename}: ${csgo} is already stopped"
 	else
 		echo -e "[\e[0;32m  OK\e[0;39m  ] Stopping ${servicename}: ${csgo}"
-		tmux kill-session -t ${servicename}
+		tmux kill-session -t ${servicename} > /dev/null 2>&1
 	fi
+}
+
+fn_server_restart(){
+	echo -e "[\e[0;32m  OK\e[0;39m  ] Restarting ${servicename}: ${csgo}"
+	fn_server_stop
+	sleep 1
+	fn_server_start
+}
+
+fn_server_update(){
+	fn_check_user
+	fn_check_file
+
+	# Check if a tmux server with the servicename is launched
+	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	if [ ${pidwc} -eq 0 ];then
+		echo -e "[\e[0;32m  OK\e[0;39m  ] ${servicename}: ${csgo} is not running"
+	else
+		echo -e "[\e[0;36m INFO\e[0;39m ] ${servicename}: ${csgo} Still running"
+		fn_server_stop
+	fi
+
+	echo -e "[\e[0;32m  OK\e[0;39m  ] Updating ${servicename}: ${csgo}"
+	cd ${rootdir}
+	cd steamcmd
+	./steamcmd.sh +login anonymous +force_install_dir ${filesdir} +app_update 740 validate +quit
 }
 
 # Install SteamCMD and CSGO server APPID 740
@@ -179,9 +216,13 @@ case "$1" in
 	install)
 		fn_install;;
 	start)
-		fn_startserver;;
+		fn_server_start;;
 	stop)
-		fn_stopserver;;
+		fn_server_stop;;
+	restart)
+		fn_server_restart;;
+	update)
+		fn_server_update;;
 	*)
 		echo "Usage: $0 {start|stop|restart|update|monitor|install|console}"
 		exit 1;;
