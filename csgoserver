@@ -61,7 +61,7 @@ fn_check_status(){
 		fn_startserver
 		exit
 	fi
-} 
+}  
 
 # Install SteamCMD
 fn_steamcmd_download(){
