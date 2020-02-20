@@ -9,7 +9,8 @@ csgo="Counter Strike: Global Offensive"
 tickrate=128
 portnumber=27015
 servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
-
+ 
+ 
 
 # Start parms
 defaultmap="de_dust2"
