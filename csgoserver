@@ -9,12 +9,10 @@ csgo="Counter Strike: Global Offensive"
 tickrate=128
 portnumber=27015
 servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
- 
- 
 
 # Start parms
 defaultmap="de_dust2"
-parms="-console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type 0 +game_mode 0 +mapgroup mg_bomb +sv_setsteamaccount 0AB9A5506D804F6C4C856D4B9CDBB9FA +map ${defaultmap}"
+parms="-console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} "
 
 # Directorys
 rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -234,15 +232,30 @@ fn_install(){
 		read -p "Enter server name: " servername
 		read -p "Enter your GSLT token: " GSLT
 		read -p "(Optional) Enter server password: " serverpass
+		read -p "(Optional) Enter your workshop_collection id: " wsID
+		read -p "(Optional) Enter your authkey (need for workshop maps): " authkey
+		
 		echo "creating server.cfg"
 		touch /${filesdir}/csgo/cfg/server.cfg
 		{
 		echo -e "hostname \"${servername}\""
 		echo -e "rcon_password \"${rconpass}\""
-		echo -e "sv_setsteamaccount \"${GSLT}\""
 		echo -e "sv_password \"${serverpass}\""
 		}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
 		echo ""
+
+		echo "creating launch.cfg"
+		touch /${filesdir}/csgo/cfg/launch.cfg
+		{
+		echo -e "sv_setsteamaccount \"${GSLT}\""
+		echo -e "workshop_collection_id \"${wsID}\""
+		echo -e "authkey \"${authkey}\""
+		echo -e "tickrate \"${tickrate}\""
+		}|tee /${filesdir}/csgo/cfg/launch.cfg  > /dev/null 2>&1
+		echo ""
+		-port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} 
+
+
 		hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 		rcon=`grep -s rcon_password /${filesdir}/csgo/cfg/server.cfg | sed 's/rcon_password //g'|sed 's/"//g'`
 		echo "${csgo} Server Details"
