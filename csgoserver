@@ -10,15 +10,14 @@ tickrate=128
 portnumber=27015
 servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 
-
-source config.sh
-# Start parms
-defaultmap="de_dust2"
-parms="grep -s hostname ${filesdir}/csgo/cfg/launch.cfg | -console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} "
-
 # Directorys
 rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 filesdir="${rootdir}/csgo"
+source "${filesdir}/csgo/cfg/launch.txt"
+
+# Start parms
+defaultmap="de_dust2"
+parms="-console -game csgo -usercon -tickrate ${tickrate} +net_public_adr xxx.xxx.xxx.xxx +ip xxx.xxx.xxx.xxx -port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} "
 
 fn_header(){
 	clear
@@ -247,15 +246,15 @@ fn_install(){
 		echo ""
 
 		echo "creating launch.cfg"
-		touch /${filesdir}/csgo/cfg/launch.cfg
+		touch /${filesdir}/csgo/cfg/launch.txt
 		{
-		echo -e "sv_setsteamaccount \"${GSLT}\""
-		echo -e "workshop_collection_id \"${wsID}\""
-		echo -e "authkey \"${authkey}\""
-		echo -e "tickrate \"${tickrate}\""
-		echo -e "portnumber \"${portnumber}\""
-		echo -e "gametype \"0\""
-		echo -e "game_mode \"0\""
+		echo -e "sv_setsteamaccount=\"${GSLT}\""
+		echo -e "workshop_collection_id=\"${wsID}\""
+		echo -e "authkey=\"${authkey}\""
+		echo -e "tickrate=\"${tickrate}\""
+		echo -e "portnumber=\"${portnumber}\""
+		echo -e "gametype=\"0\""
+		echo -e "game_mode=\"0\""
 		}|tee /${filesdir}/csgo/cfg/launch.cfg  > /dev/null 2>&1
 		echo ""
 		+mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} 
