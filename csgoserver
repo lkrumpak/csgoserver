@@ -10,9 +10,11 @@ tickrate=128
 portnumber=27015
 servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 
+
+source config.sh
 # Start parms
 defaultmap="de_dust2"
-parms="-console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} "
+parms="grep -s hostname ${filesdir}/csgo/cfg/launch.cfg | -console -game csgo -usercon -tickrate ${tickrate} -port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} "
 
 # Directorys
 rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -22,9 +24,9 @@ fn_header(){
 	clear
 	echo "================================="
 	echo "${csgo}"
-	echo "Linux Server Installer"
+	echo "CS:GO Linux Server Installer"
 	echo "by Luka Krumpak"
-	echo "https://lukakrumpak.com"
+	echo "https://csgo.lukakrumpak.com"
 	echo "================================="
 	echo ""
 }
@@ -225,7 +227,7 @@ fn_install(){
 		echo "quit" >> install.txt
 		STEAMEXE=steamcmd ./steamcmd.sh +runscript install.txt
 		rm install.txt
-	echo ""
+	echo clear
 	echo "Configuring ${csgo} Server"
 	echo "================================="
 		read -p "Enter rcon password: " rconpass
@@ -233,7 +235,7 @@ fn_install(){
 		read -p "Enter your GSLT token: " GSLT
 		read -p "(Optional) Enter server password: " serverpass
 		read -p "(Optional) Enter your workshop_collection id: " wsID
-		read -p "(Optional) Enter your authkey (need for workshop maps): " authkey
+		read -p "(Optional) Enter your authkey (needed for workshop maps): " authkey
 		
 		echo "creating server.cfg"
 		touch /${filesdir}/csgo/cfg/server.cfg
@@ -251,9 +253,12 @@ fn_install(){
 		echo -e "workshop_collection_id \"${wsID}\""
 		echo -e "authkey \"${authkey}\""
 		echo -e "tickrate \"${tickrate}\""
+		echo -e "portnumber \"${portnumber}\""
+		echo -e "gametype \"0\""
+		echo -e "game_mode \"0\""
 		}|tee /${filesdir}/csgo/cfg/launch.cfg  > /dev/null 2>&1
 		echo ""
-		-port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} 
+		+mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} 
 
 
 		hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
