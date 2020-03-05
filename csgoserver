@@ -241,6 +241,8 @@ fn_install(){
 		echo "quit" >> install.txt
 		STEAMEXE=steamcmd ./steamcmd.sh +runscript install.txt
 		rm install.txt
+
+	clear
 	echo -e "\e[0;36m Configuring\e[0;39m ${csgo} Server"
 	echo "================================="
 		read -p "(Required) Enter rcon password: " rconpass
@@ -269,8 +271,8 @@ fn_install(){
 		rcon=`grep -s rcon_password /${filesdir}/csgo/cfg/server.cfg | sed 's/rcon_password //g'|sed 's/"//g'`
 		
 		clear
-		echo "${csgo} Server Details"
-		echo "================================="
+	echo "${csgo} Server Details"
+	echo "================================="
 		echo ""
 		echo -e "Server hostname:\e[0;36m ${hostname}\e[0;39m"
 		echo -e "Server IP:\e[0;36m ${ip}\e[0;39m"
@@ -281,9 +283,9 @@ fn_install(){
 		echo "${filesdir}/csgo/cfg/server.cfg"
 		echo "${rootdir}/lgs-config/server.txt"
 		echo ""
-		echo "================================="
-		echo "Installation Complete!"
-		echo "================================="
+	echo "================================="
+	echo "Installation Complete!"
+	echo "================================="
 		echo ""
 		echo "Usage: $0 {start|stop|restart|update|status|install|console}"
 	}
