@@ -1,6 +1,6 @@
-# csgoserver
 Easy CS:GO Linux Game Server 
 ===================================================================
+Simple deployment and management of a Counter Strike: Global Offensive Linux dedicated server.
 
 Features
 ========

@@ -261,10 +261,12 @@ fn_install(){
 		echo ""
 		fn_check_serverconfig
 
-		wget  -nd -np -P ${rootdir}/lgs-config --recursive  https://raw.githubusercontent.com/lkrumpak/csgoserver/master/config/server.txt
-		sed -i "s/ip=.*/ip="${ip}"/" ${rootdir}/lgs-config/server.txt
-		sed -i "s/gslt=.*/gslt="${gslt}"/" ${rootdir}/lgs-config/server.txt
-	
+		if [ ! -f "${rootdir}/lgs-config/server.txt" ]; then
+			wget  -nd -np -P ${rootdir}/lgs-config --recursive  https://raw.githubusercontent.com/lkrumpak/csgoserver/master/config/server.txt
+			sed -i "s/ip=.*/ip="${ip}"/" ${rootdir}/lgs-config/server.txt
+			sed -i "s/gslt=.*/gslt="${gslt}"/" ${rootdir}/lgs-config/server.txt
+		fi
+
 		fn_check_lgsconfig
 
 		hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
