@@ -239,16 +239,16 @@ fn_install(){
 		}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
 		echo ""
 
-		mkdir -p https://raw.githubusercontent.com/lkrumpak/csgoserver/master/config/server.txt
+		wget -p /config https://raw.githubusercontent.com/lkrumpak/csgoserver/master/config/server.txt
 		sed -i "s/ip=.*/ip="${ip}"/" config/server.txt
 		sed -i "s/gslt=.*/gslt="${gslt}"/" config/server.txt
 
-		hostname=`grep -s hostname /${file§sdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
+		hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 		rcon=`grep -s rcon_password /${filesdir}/csgo/cfg/server.cfg | sed 's/rcon_password //g'|sed 's/"//g'`
 		echo "${csgo} Server Details"
 		echo "================================="
 		echo "Server hostname: ${hostname}"
-		echo "Rcon password: ${r§on}"
+		echo "Rcon password: ${rcon}"
 		echo "You can edit these in server.cfg:"
 		echo "${filesdir}/csgo/cfg/server.cfg"
 		echo ""
