@@ -11,7 +11,7 @@ servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname /
 # Directorys
 rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 filesdir="${rootdir}/csgo"
-source "${filesdir}/csgo/cfg/launch.txt"
+source "${rootdir}/lgs-config/server.txt"
 
 
 fn_header(){
@@ -37,6 +37,23 @@ fn_check_user(){
 fn_check_file(){
 	if [ ! -e ${filesdir} ];then
 		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: cannot access ${filesdir}: No such directory"
+		exit
+	fi
+}
+
+fn_check_lgsconfig(){
+	FILE=${rootdir}/lgs-config/server.txt
+	if [ ! -f "$FILE" ]; then
+		echo "$FILE is missing!"
+		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: cannot access ${FILE}: No such directory"
+		exit
+	fi
+}
+fn_check_serverconfig(){
+	FILE=${filesdir}/csgo/cfg/server.cfg
+	if [ ! -f "$FILE" ]; then
+		echo "$FILE is missing!"
+		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: cannot access ${FILE}: No such directory"
 		exit
 	fi
 }
@@ -80,6 +97,7 @@ fn_steamcmd_download(){
 fn_server_start(){
 	fn_check_user
 	fn_check_file
+	fn_check_lgsconfig
 	cd ${filesdir}
 
 	# Check if a tmux server with the servicename is launched
@@ -106,6 +124,7 @@ fn_server_start(){
 fn_server_stop(){
 	fn_check_user
 	fn_check_file
+	fn_check_lgsconfig
 
 	# Check if a tmux server with the servicename is launched
 	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
@@ -127,6 +146,7 @@ fn_server_restart(){
 fn_server_update(){
 	fn_check_user
 	fn_check_file
+	fn_check_config
 
 	# Check if a tmux server with the servicename is launched
 	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
@@ -221,8 +241,7 @@ fn_install(){
 		echo "quit" >> install.txt
 		STEAMEXE=steamcmd ./steamcmd.sh +runscript install.txt
 		rm install.txt
-	echo clear
-	echo "Configuring ${csgo} Server"
+	echo -e "\e[0;36m Configuring\e[0;39m ${csgo} Server"
 	echo "================================="
 		read -p "(Required) Enter rcon password: " rconpass
 		read -p "(Required) Enter server name: " servername
@@ -238,24 +257,35 @@ fn_install(){
 		echo -e "sv_password \"${serverpass}\""
 		}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
 		echo ""
+		fn_check_serverconfig
+
 		wget  -nd -np -P ${rootdir}/lgs-config --recursive  https://raw.githubusercontent.com/lkrumpak/csgoserver/master/config/server.txt
 		sed -i "s/ip=.*/ip="${ip}"/" ${rootdir}/lgs-config/server.txt
 		sed -i "s/gslt=.*/gslt="${gslt}"/" ${rootdir}/lgs-config/server.txt
+	
+		fn_check_lgsconfig
 
 		hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 		rcon=`grep -s rcon_password /${filesdir}/csgo/cfg/server.cfg | sed 's/rcon_password //g'|sed 's/"//g'`
+		
+		clear
 		echo "${csgo} Server Details"
 		echo "================================="
-		echo "Server hostname: ${hostname}"
-		echo "Rcon password: ${rcon}"
-		echo "You can edit these in server.cfg:"
+		echo ""
+		echo -e "Server hostname:\e[0;36m ${hostname}\e[0;39m"
+		echo -e "Server IP:\e[0;36m ${ip}\e[0;39m"
+		echo -e "Rcon password:\e[0;36m ${rcon}\e[0;39m"
+		echo ""
+		echo "You can edit these server details at:"
+		echo ""
 		echo "${filesdir}/csgo/cfg/server.cfg"
+		echo "${rootdir}/lgs-config/server.txt"
 		echo ""
 		echo "================================="
-		echo "Install Complete!"
+		echo "Installation Complete!"
+		echo "================================="
 		echo ""
-		echo "To start server type:"
-		echo "./csgoserver start"
+		echo "Usage: $0 {start|stop|restart|update|status|install|console}"
 	}
 
 case "$1" in
