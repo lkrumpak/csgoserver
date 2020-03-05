@@ -6,8 +6,6 @@
 # Server settings
 servicename="csgo-server"
 csgo="Counter Strike: Global Offensive"
-tickrate=128
-portnumber=27015
 servername=`grep -s hostname ${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 
 # Directorys
@@ -15,9 +13,6 @@ rootdir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 filesdir="${rootdir}/csgo"
 source "${filesdir}/csgo/cfg/launch.txt"
 
-# Start parms
-defaultmap="de_dust2"
-parms="-console -game csgo -usercon -tickrate ${tickrate} +net_public_adr xxx.xxx.xxx.xxx +ip xxx.xxx.xxx.xxx -port ${portnumber} +game_type ${gametype} +game_mode ${gamemode} +mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} "
 
 fn_header(){
 	clear
@@ -145,7 +140,7 @@ fn_server_update(){
 	echo -e "[\e[0;32m  OK\e[0;39m  ] Updating ${servicename}: ${csgo}"
 	cd ${rootdir}
 	cd steamcmd
-	./steamcmd.sh +login anonymous +force_install_dir ${filesdir} +app_update 740 validate +quit
+	./steamcmd.sh +login anonymous +force_install_dir ${filesdir} +app_update ${appid} validate +quit
 }
 
 fn_server_status(){
@@ -178,7 +173,7 @@ fn_server_console(){
 	fi
 }
 
-# Install SteamCMD and CSGO server APPID 740
+# Install SteamCMD and CS:GO server
 fn_install(){
 	fn_check_user
 	fn_header
@@ -222,19 +217,18 @@ fn_install(){
 		chmod 0600 install.txt
 		echo "login anonymous" > install.txt
 		echo "force_install_dir ${filesdir}" >> install.txt
-		echo "app_update 740 validate" >> install.txt
+		echo "app_update ${appid} validate" >> install.txt
 		echo "quit" >> install.txt
 		STEAMEXE=steamcmd ./steamcmd.sh +runscript install.txt
 		rm install.txt
 	echo clear
 	echo "Configuring ${csgo} Server"
 	echo "================================="
-		read -p "Enter rcon password: " rconpass
-		read -p "Enter server name: " servername
-		read -p "Enter your GSLT token: " GSLT
+		read -p "(Required) Enter rcon password: " rconpass
+		read -p "(Required) Enter server name: " servername
+		read -p "(Required) Enter your GSLT token: " gslt
+		read -p "(Required) Enter your server IP xxx.xxx.xxx.xxx: " ip
 		read -p "(Optional) Enter server password: " serverpass
-		read -p "(Optional) Enter your workshop_collection id: " wsID
-		read -p "(Optional) Enter your authkey (needed for workshop maps): " authkey
 		
 		echo "creating server.cfg"
 		touch /${filesdir}/csgo/cfg/server.cfg
@@ -245,27 +239,16 @@ fn_install(){
 		}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
 		echo ""
 
-		echo "creating launch.cfg"
-		touch /${filesdir}/csgo/cfg/launch.txt
-		{
-		echo -e "sv_setsteamaccount=\"${GSLT}\""
-		echo -e "workshop_collection_id=\"${wsID}\""
-		echo -e "authkey=\"${authkey}\""
-		echo -e "tickrate=\"${tickrate}\""
-		echo -e "portnumber=\"${portnumber}\""
-		echo -e "gametype=\"0\""
-		echo -e "game_mode=\"0\""
-		}|tee /${filesdir}/csgo/cfg/launch.cfg  > /dev/null 2>&1
-		echo ""
-		+mapgroup ${mapgroup} +sv_setsteamaccount ${GSLT} +map ${defaultmap} -maxplayers_override ${maxplayers} +host_workshop_collection ${workshopid} +workshop_start_map ${wsdefaultmap} -authkey ${authkey} 
+		mkdir -p https://raw.github.com/lkrumpak/config/server/master/
+		sed -i "s/ip=.*/ip="${ip}"/" config/server.txt
+		sed -i "s/gslt=.*/gslt="${gslt}"/" config/server.txt
 
-
-		hostname=`grep -s hostname /${filesdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
+		hostname=`grep -s hostname /${file§sdir}/csgo/cfg/server.cfg | sed 's/hostname //g'|sed 's/"//g'`
 		rcon=`grep -s rcon_password /${filesdir}/csgo/cfg/server.cfg | sed 's/rcon_password //g'|sed 's/"//g'`
 		echo "${csgo} Server Details"
 		echo "================================="
 		echo "Server hostname: ${hostname}"
-		echo "Rcon password: ${rcon}"
+		echo "Rcon password: ${r§on}"
 		echo "You can edit these in server.cfg:"
 		echo "${filesdir}/csgo/cfg/server.cfg"
 		echo ""
@@ -273,7 +256,7 @@ fn_install(){
 		echo "Install Complete!"
 		echo ""
 		echo "To start server type:"
-		echo "./server start"
+		echo "./csgoserver start"
 	}
 
 case "$1" in

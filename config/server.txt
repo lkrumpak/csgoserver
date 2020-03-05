@@ -1,0 +1,40 @@
+#### Game Server Settings ####
+
+# [Game Modes]			gametype	gamemode	mapgroup (you can mix these across all Game Modes except Danger Zone, but use only one)
+# Arms Race				1			0			mg_armsrace
+# Classic Casual		0			0			mg_casualsigma, mg_casualdelta
+# Classic Competitive	0			1			mg_active, mg_reserves, mg_hostage, mg_de_dust2
+# Custom				3			0
+# Deathmatch			1			2			mg_deathmatch
+# Demolition			1			1			mg_demolition
+# Wingman				0			2
+# Danger Zone			6			0			mg_dz_blacksite (map: dz_blacksite), mg_dz_sirocco (map: dz_sirocco)
+
+gametype="0"
+gamemode="0"
+mapgroup="mg_active"
+ip="0.0.0.0"
+serverport="27015"
+clientport="27005"
+sourcetvport="27020"
+defaultmap="de_dust2"
+maxplayers="12"
+tickrate="128"
+
+# Game Server Login Token (GSLT): Required
+# More info: https://steamcommunity.com/dev/managegameservers
+gslt=""
+
+# Workshop Parameters: Optional
+# More info: https://steamcommunity.com/dev/apikey
+wsauthkey=""
+wscollectionid=""
+wsstartmap=""
+
+# Server Start Command 
+parms="-game csgo -usercon -strictportbind -ip ${ip} -port ${serverport} +clientport ${clientport} +tv_port ${sourcetvport} +sv_setsteamaccount ${gslt} -tickrate ${tickrate} +map ${defaultmap} +servercfgfile ${servercfg} -maxplayers_override ${maxplayers} +mapgroup ${mapgroup} +game_type ${gametype} +game_mode ${gamemode} +host_workshop_collection ${wscollectionid} +workshop_start_map ${wsstartmap} -authkey ${wsauthkey} -nobreakpad"
+
+# SteamCMD Settings 
+appid="740"
+
+
