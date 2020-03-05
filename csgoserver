@@ -239,7 +239,7 @@ fn_install(){
 		}|tee /${filesdir}/csgo/cfg/server.cfg  > /dev/null 2>&1
 		echo ""
 
-		mkdir -p https://raw.github.com/lkrumpak/config/server/master/
+		mkdir -p https://raw.githubusercontent.com/lkrumpak/csgoserver/master/config/server.txt
 		sed -i "s/ip=.*/ip="${ip}"/" config/server.txt
 		sed -i "s/gslt=.*/gslt="${gslt}"/" config/server.txt
 
