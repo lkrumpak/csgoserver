@@ -1,6 +1,7 @@
 Easy CS:GO Linux Game Server 
 ===================================================================
-Simple deployment and management of a Counter Strike: Global Offensive Linux dedicated server.
+Simple deployment and management of a Counter Strike: Global Offensive Linux dedicated server. This project was created to help me learn more about shell scripting. 
+The script is based on https://github.com/GameServerManagers/LinuxGSM.
 
 Features
 ========
@@ -8,6 +9,7 @@ Features
  * Start/Stop/Restart server
  * Server updater (using SteamCMD)
  * Server Console
+ * exec <comand> 
 
 Installation
 ============
@@ -21,13 +23,9 @@ Install
 -------
 Add a new user since the script will not run on the root user!
 
-`adduser csgouser`
-
-`passwd csgouser`
-(use a more secure password!)
+`adduser csgoserver` (use a more secure password!)
 
 `su - csgouser`
-
 
 Download the script and make it executable:
 
