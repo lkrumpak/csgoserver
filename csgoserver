@@ -206,12 +206,12 @@ fn_install(){
 	fn_check_lgsconfig
 	
 	fn_header
-	echo "${csgo} Server Details"
+	echo "${gamename} Server Details"
 	echo "================================="
 		echo ""
-		echo -e "Server hostname:\e[0;36m ${hostname}\e[0;39m"
+		echo -e "Server hostname:\e[0;36m ${servername}\e[0;39m"
 		echo -e "Server IP:\e[0;36m ${ip}\e[0;39m"
-		echo -e "Rcon password:\e[0;36m ${rcon}\e[0;39m"
+		echo -e "Rcon password:\e[0;36m ${rconpass}\e[0;39m"
 		echo ""
 		echo "You can edit these server details at:"
 		echo ""
@@ -228,40 +228,84 @@ fn_install(){
 fn_server_start(){
 	fn_check_user
 	cd ${filesdir}
-
 	# Check if a tmux server with the servicename is launched
 	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
 	if [ ${pidwc} -eq 0 ];then
-		echo -e "[\e[0;32m  OK\e[0;39m  ] Starting ${servicename}: ${parms}"
+		fn_printdots "Starting ${servicename}: ${gamename}"
 
 		#tmux sesson 
 		tmux new-session -d -s ${servicename} ${filesdir}/srcds_run ${parms}
 		sleep 1
 	else
-		echo -e "[\e[0;36m INFO\e[0;39m ] ${servicename}: ${csgo} is already running"
+		fn_printfail "${servicename}: ${gamename} is already running"
 		exit
 	fi
 
 	# Check if a tmux server with the servicename is launched
 	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
 	if [ ${pidwc} -eq 0 ];then
-		echo -e "[\e[0;31m FAIL\e[0;39m ] ${servicename}: ${csgo} failed to start"
+		fn_printfail "${servicename}: ${gamename} failed to start"
 	else
-		echo -e "[\e[0;32m  OK\e[0;39m  ] Successfully started ${servicename}: ${csgo}"
-	fi
+		fn_printok "Successfully started ${servicename}: ${gamename}"
+	fi 
 }
 
 fn_server_stop(){
 	fn_check_user
 
+	# Check if a tmux server with the servicename is launched
+	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	fn_printdots "Stopping ${servicename}: ${gamename}"
+	sleep 1
+	if [ ${pidwc} -eq 0 ];then
+		fn_printwarn "${servicename}: ${gamename} is already stopped"
+	else
+		fn_printok "Stopping ${servicename}: ${csgo}"
+		tmux kill-session -t ${servicename} > /dev/null 2>&1
+	fi
+}
 
+
+fn_server_update(){
+	fn_check_user
+	fn_printdots "Checking server status"
+	sleep 1
 	# Check if a tmux server with the servicename is launched
 	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
 	if [ ${pidwc} -eq 0 ];then
-		echo -e "[\e[0;36m INFO\e[0;39m ] ${servicename}: ${csgo} is already stopped"
+		fn_printok "${servicename}: ${gamename} is not running"
 	else
-		echo -e "[\e[0;32m  OK\e[0;39m  ] Stopping ${servicename}: ${csgo}"
-		tmux kill-session -t ${servicename} > /dev/null 2>&1
+		fn_printinfo "${servicename}: ${gamename} is still running"
+		fn_server_stop
+	fi
+
+	fn_printok "Updating ${servicename}: ${gamename}"
+	cd ${rootdir}
+	cd steamcmd
+	./steamcmd.sh +login anonymous +force_install_dir ${filesdir} +app_update ${appid} validate +quit
+}
+
+fn_server_console(){
+	fn_printok "Starting Console! "
+	fn_printinfo "Press \"CTRL+b\" then \"d\" to exit console."
+	fn_printwarn "Do NOT press CTRL+c to exit."
+	while true; do
+		read -p "Continue? [y/n]" choice
+		case $choice in
+		y|Y ) break;;
+		n|N ) echo Exiting; return 1 ;;
+		* ) echo "Invalid. Answer 'Yes' or 'No.";;
+		esac
+	done
+
+	fn_printdots "Accessing console"
+	pidwc=`tmux ls 2>/dev/null|grep ${servicename} |awk -F . '{print $1}'|awk '{print $1}'|wc -l`
+	if [ ${pidwc} -eq 0 ];then
+		fn_printfail "${servicename}: ${gamename} is not running!"
+	else
+		fn_printok "Accessing console"
+		tmux attach-session -t "${servicename}"
+		exit
 	fi
 }
 
@@ -274,14 +318,13 @@ case "$1" in
 	stop)
 		fn_server_stop;;
 	restart)
-		fn_server_restart;;
+		fn_server_stop
+		fn_server_start;;
 	update)
 		fn_server_update;;
-	status)
-		fn_server_status;;
 	console)
 		fn_server_console;;
 	*)
-		echo "Usage: $0 {start|stop|restart|update|status|install|console}"
+		echo "Usage: $0 {start|stop|restart|update|install|console}"
 		exit 1;;
 esac
