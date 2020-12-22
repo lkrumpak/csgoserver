@@ -9,7 +9,7 @@ Features
  * Start/Stop/Restart server
  * Server updater (using SteamCMD)
  * Server Console
- * exec <comand> 
+ * Server exec 
 
 Installation
 ============
@@ -23,7 +23,7 @@ Install
 -------
 Add a new user since the script will not run on the root user!
 
-`adduser csgoserver` (use a more secure password!)
+`adduser csgoserver` (use a secure password!)
 
 `su - csgouser`
 
