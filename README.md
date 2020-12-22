@@ -8,7 +8,6 @@ Features
  * Start/Stop/Restart server
  * Server updater (using SteamCMD)
  * Server Console
- * Server Status
 
 Installation
 ============
@@ -16,12 +15,7 @@ Prerequisites
 -------------
 Before installing, please ensure you have all the dependencies required to run the script.
 
- `apt-get install wget curl tar tmux`
-
-64 Bit reuqirements
--------------------
-
- `apt-get install ia32-libs-gtk`
+ `sudo dpkg --add-architecture i386; sudo apt update; sudo apt install wget tar tmux lib32gcc1`
 
 Install
 -------
