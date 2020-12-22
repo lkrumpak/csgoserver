@@ -142,6 +142,17 @@ if [ "${ip}" == "0.0.0.0" ]||[ "${ip}" == "" ]; then
 fi
 }
 
+fn_retryinstall(){
+while true; do
+	read -p "Retry install? [y/N]" $choice
+	case $choice in
+	y|Y ) fn_install; exit;;
+	n|N ) echo Exiting; exit;;
+	* ) echo "Please answer yes or no.";;
+	esac
+done
+}
+
 fn_install(){
 	fn_check_user
 	fn_header
@@ -173,8 +184,8 @@ fn_install(){
 	done
 
 	# SteamCMD and CS:GO Installation
-	# fn_install_steam
-	# fn_install_csgo
+	fn_install_steam
+	fn_install_csgo
 
 	# setup server
 	fn_header
